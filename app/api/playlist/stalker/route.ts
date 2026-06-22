@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { fetchWithTimeout, safeJson } from "@/lib/http";
 import { normalizeMac, normalizeStalkerUrl } from "@/lib/validation";
 import { createInMemoryRateLimiter, getClientIp, RATE_MAX_PLAYLIST_PER_WINDOW, RATE_WINDOW_MS } from "@/lib/rateLimit";
-import { isHumanVerified } from "@/lib/humanVerification";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store",
@@ -199,13 +198,6 @@ export async function POST(req: Request) {
   try {
     const blocked = requireClient(req);
     if (blocked) return blocked;
-
-    if (!(await isHumanVerified(req, Date.now()))) {
-      return NextResponse.json(
-        { requestId, ok: false, error: "Human verification required.", code: "human_verification_required" },
-        { status: 403, headers: NO_STORE_HEADERS }
-      );
-    }
 
     const ip = getClientIp(req);
     if (!rateLimiter.allow(ip)) {

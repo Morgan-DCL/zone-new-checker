@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { isHumanVerified } from "@/lib/humanVerification";
 
 // Simple in-memory rate limiting
 const rateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -188,14 +187,6 @@ function extractFromComments(comments: unknown[]): string {
 }
 
 export async function POST(req: Request) {
-  const now = Date.now();
-
-  // Human verification check
-  const verified = await isHumanVerified(req, now);
-  if (!verified) {
-    return NextResponse.json({ ok: false, error: "Verification required" }, { status: 403 });
-  }
-
   // Rate limiting
   const ip = req.headers.get("x-forwarded-for") || "unknown";
   if (!checkRateLimit(ip)) {
